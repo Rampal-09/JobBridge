@@ -81,6 +81,9 @@ export const getJobs = async (req, res) => {
       location,
       type,
       status,
+      experienceLevel,
+      minSalary,
+      maxSalary,
       page = 1,
       limit = 10,
       sortBy = "createdAt",
@@ -113,6 +116,13 @@ export const getJobs = async (req, res) => {
     if (location) filter.location = { $regex: location, $options: "i" };
     if (type) filter.jobType = type;
     if (status) filter.status = status;
+    if (experienceLevel) filter.experienceLevel = experienceLevel;
+
+    if (minSalary || maxSalary) {
+      filter.salary = {};
+      if (minSalary) filter.salary.$gte = Number(minSalary);
+      if (maxSalary) filter.salary.$lte = Number(maxSalary);
+    }
 
     const jobs = await Job.find(filter)
       .skip((pageNumber - 1) * limitNumber)

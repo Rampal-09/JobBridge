@@ -45,16 +45,23 @@ function App() {
     location: "",
     type: "",
     status: "",
+    experienceLevel: "",
+    minSalary: 0,
   });
+  const [isLoadingJobs, setIsLoadingJobs] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   useEffect(() => {
     const fetchJobs = async () => {
+      setIsLoadingJobs(true);
       try {
         const res = await getJobs({ ...filters, page, limit: 6 });
         setJobs(res.jobs || []);
         setTotalPages(res.totalPages || 1);
       } catch (err) {
         console.log("Error:", err);
+      } finally {
+        setIsLoadingJobs(false);
       }
     };
 
@@ -67,7 +74,14 @@ function App() {
   };
 
   const resetFilters = () => {
-    setFilters({ search: "", location: "", type: "", status: "" });
+    setFilters({
+      search: "",
+      location: "",
+      type: "",
+      status: "",
+      experienceLevel: "",
+      minSalary: 0,
+    });
     setPage(1);
   };
 
@@ -207,6 +221,14 @@ function App() {
     }
   };
 
+  const activeFilterCount = [
+    filters.location,
+    filters.type,
+    filters.status,
+    filters.experienceLevel,
+    filters.minSalary > 0 ? filters.minSalary : "",
+  ].filter(Boolean).length;
+
   return (
     <BrowserRouter>
       <Suspense fallback={<div>Loading...</div>}>
@@ -281,7 +303,7 @@ function App() {
             path="/"
             element={
               <ProtectedRoute>
-                <div className="space-y-8">
+                <div className="space-y-8 relative">
                   {/* Full Width Hero Banner at the top */}
                   <HeroBanner
                     searchVal={filters.search}
@@ -291,17 +313,21 @@ function App() {
 
                   {/* Filter and Jobs list grid */}
                   <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-                    <div className="lg:col-span-1 lg:sticky lg:top-24">
+                    <div className="hidden lg:block lg:col-span-1 lg:sticky lg:top-24">
                       <Filter
                         filters={filters}
                         onFilterChange={handleFilterChange}
                         onResetFilters={resetFilters}
                       />
                     </div>
-                    <div className="lg:col-span-3">
+                    <div className="col-span-1 lg:col-span-3">
                       <JobList
                         favoriteJobIds={favoriteJobIds}
                         jobs={jobs}
+                        isLoading={isLoadingJobs}
+                        filters={filters}
+                        onFilterChange={handleFilterChange}
+                        onResetFilters={resetFilters}
                         onEditing={onEditing}
                         onDeleteJob={onDeleteJob}
                         onFavorite={onFavorite}
@@ -313,6 +339,63 @@ function App() {
                       />
                     </div>
                   </div>
+
+                  {/* Floating Mobile Filter Toggle */}
+                  <div className="lg:hidden fixed bottom-6 right-6 z-40">
+                    <button
+                      onClick={() => setIsFilterOpen(true)}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-4 rounded-full shadow-xl shadow-indigo-200/50 flex items-center gap-2 cursor-pointer transition-transform active:scale-95 border border-indigo-500/30"
+                    >
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                      </svg>
+                      <span className="text-sm font-semibold">Filters</span>
+                      {activeFilterCount > 0 && (
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-extrabold text-white border border-white/25 animate-pulse">
+                          {activeFilterCount}
+                        </span>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Slide-over Bottom Sheet for Mobile Filters */}
+                  {isFilterOpen && (
+                    <div className="fixed inset-0 z-50 lg:hidden flex items-end justify-center bg-slate-900/40 backdrop-blur-sm p-0 animate-modal-backdrop">
+                      <div className="w-full max-h-[85vh] bg-white rounded-t-3xl shadow-2xl border-t border-slate-100 flex flex-col animate-modal-content">
+                        {/* Header bar of drawer */}
+                        <div className="flex items-center justify-between px-6 py-4.5 border-b border-slate-100">
+                          <span className="text-base font-bold text-slate-800 font-display">Filters</span>
+                          <button
+                            onClick={() => setIsFilterOpen(false)}
+                            className="p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
+                          >
+                            <svg className="h-5.5 w-5.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+
+                        {/* Filter Content scroll area */}
+                        <div className="flex-1 overflow-y-auto">
+                          <Filter
+                            filters={filters}
+                            onFilterChange={handleFilterChange}
+                            onResetFilters={resetFilters}
+                          />
+                        </div>
+
+                        {/* Drawer footer sticky action */}
+                        <div className="p-4 border-t border-slate-100 bg-slate-50/50">
+                          <button
+                            onClick={() => setIsFilterOpen(false)}
+                            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-md shadow-indigo-100 hover:shadow-lg active:scale-98 cursor-pointer text-sm"
+                          >
+                            Apply Filters {activeFilterCount > 0 ? `(${activeFilterCount})` : ""}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </ProtectedRoute>
             }
