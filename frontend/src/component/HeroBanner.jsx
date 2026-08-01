@@ -7,8 +7,8 @@ const HeroBanner = ({ searchVal = "", onSearchChange, user }) => {
       <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-indigo-100/30 blur-3xl"></div>
       <div className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-purple-100/20 blur-3xl"></div>
 
-      {/* Floating Illustration / Graphic (Hidden on mobile, shown on md+) */}
-      <div className="hidden md:flex absolute right-12 top-1/2 -translate-y-1/2 w-80 h-48 items-center justify-center pointer-events-auto">
+      {/* Floating Illustration / Graphic (Hidden on mobile/tablet, shown on lg+) */}
+      <div className="hidden lg:flex absolute right-12 top-1/2 -translate-y-1/2 w-80 h-48 items-center justify-center pointer-events-auto">
         {/* Decorative background glow circles */}
         <div className="absolute w-44 h-44 rounded-full bg-gradient-to-r from-indigo-500/5 to-purple-500/5 animate-pulse"></div>
         
@@ -48,7 +48,7 @@ const HeroBanner = ({ searchVal = "", onSearchChange, user }) => {
         </div>
       </div>
 
-      <div className="relative space-y-4 max-w-xl md:max-w-2xl pr-0 md:pr-12 text-left">
+      <div className="relative space-y-4 max-w-xl lg:max-w-[55%] xl:max-w-2xl pr-0 lg:pr-12 text-left">
         <span className="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 border border-indigo-100/50">
           Welcome back, {user?.name || "Job Seeker"} 👋
         </span>
