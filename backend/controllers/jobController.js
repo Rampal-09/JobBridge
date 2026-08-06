@@ -5,7 +5,10 @@ import streamifier from "streamifier";
 import Job from "../models/jobModel.js";
 import profileModel from "../models/profileModel.js";
 import saveJobModel from "../models/saveJobModel.js";
+import Users from "../models/userModel.js";
 import { upload } from "../middleware/upload.js";
+import { sendEmail } from "../utils/sendEmail.js";
+import { candidateStatusTemplate } from "../templates/index.js";
 
 const uploadBuffer = (buffer, folder, publicId, resourceType) =>
   new Promise((resolve, reject) => {
@@ -356,10 +359,10 @@ export const profile = async (req, res) => {
 
 export const getMyProfile = async (req, res) => {
   try {
-    const profile = await profileModel.findOne({ userId: req.user.id });
+    let profile = await profileModel.findOne({ userId: req.user.id });
 
     if (!profile) {
-      return res.status(404).json({ msg: "Profile not found" });
+      profile = await profileModel.create({ userId: req.user.id });
     }
 
     return res.status(200).json({ data: profile });
@@ -759,10 +762,9 @@ export const applications = async (req, res) => {
       return res.status(400).json({ msg: "you already applied for this job" });
     }
 
-    const profile = await profileModel.findOne({ userId: req.user.id });
-    console.log(profile);
+    let profile = await profileModel.findOne({ userId: req.user.id });
     if (!profile) {
-      return res.status(404).json({ msg: "profile not found" });
+      profile = await profileModel.create({ userId: req.user.id });
     }
 
     const job = await Job.findById(req.params.id);
@@ -875,6 +877,41 @@ export const updateApplicationStatus = async (req, res) => {
 
     application.status = status;
     await application.save();
+
+    // Send email notification for status updates (shortlisted, interview, hired, rejected)
+    if (["shortlisted", "interview", "hired", "rejected"].includes(status)) {
+      Users.findById(application.candidateId)
+        .then((candidate) => {
+          if (candidate?.email) {
+            let subject = `Application Update: ${job.title}`;
+            if (status === "shortlisted") {
+              subject = `Your Application for ${job.title} Has Been Shortlisted!`;
+            } else if (status === "interview") {
+              subject = `Interview Invitation: ${job.title}`;
+            } else if (status === "hired") {
+              subject = `Congratulations! You have been hired for ${job.title} 🎉`;
+            } else if (status === "rejected") {
+              subject = `Update regarding your application for ${job.title}`;
+            }
+
+            sendEmail({
+              to: candidate.email,
+              subject,
+              html: candidateStatusTemplate({
+                candidateName: candidate.name || "Candidate",
+                jobTitle: job.title,
+                companyName: job.companyName || "the employer",
+                status,
+              }),
+            }).catch((err) => {
+              console.error("Status update email failed to send:", err.message);
+            });
+          }
+        })
+        .catch((err) =>
+          console.error("Error fetching candidate for status email:", err.message),
+        );
+    }
 
     return res.status(200).json({
       msg: "Status updated successfully",

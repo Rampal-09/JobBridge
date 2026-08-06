@@ -1,6 +1,9 @@
 import bcrypt from "bcryptjs";
 import Users from "../models/userModel.js";
+import profileModel from "../models/profileModel.js";
 import jwt from "jsonwebtoken";
+import { sendEmail } from "../utils/sendEmail.js";
+import { welcomeTemplate } from "../templates/index.js";
 
 export const register = async (req, res) => {
   console.log("req came to auth controller");
@@ -28,6 +31,18 @@ export const register = async (req, res) => {
       email: normalizedEmail,
       password: hashpassword,
       role: role,
+    });
+
+    // Automatically create a default profile for the user
+    await profileModel.create({ userId: newUser._id });
+
+    // Send Welcome Email (non-blocking)
+    sendEmail({
+      to: newUser.email,
+      subject: "Welcome to JobBridge! 🎉",
+      html: welcomeTemplate({ name: newUser.name }),
+    }).catch((err) => {
+      console.error("Welcome email failed to send:", err.message);
     });
 
     // Create JWT token
