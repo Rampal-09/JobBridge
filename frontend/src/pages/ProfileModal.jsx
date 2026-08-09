@@ -8,6 +8,7 @@ import {
   deleteProfileEducation,
   deleteProfileExperience,
 } from "../api/job";
+import { useAuth } from "../context/Context";
 
 const createEducationItem = () => ({
   degree: "",
@@ -37,6 +38,7 @@ const formatDateForInput = (dateStr) => {
 };
 
 const ProfileModal = () => {
+  const { user } = useAuth();
   const location = useLocation();
   const queryTab = new URLSearchParams(location.search).get("tab") || location.state?.tab;
 
@@ -61,6 +63,7 @@ const ProfileModal = () => {
   }, [queryTab]);
 
   useEffect(() => {
+    if (!user) return;
     const loadProfile = async () => {
       try {
         const res = await getMyProfile();
@@ -88,7 +91,7 @@ const ProfileModal = () => {
       }
     };
     loadProfile();
-  }, []);
+  }, [user]);
 
   const addEducation = () => {
     setFormData({

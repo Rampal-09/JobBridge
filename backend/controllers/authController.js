@@ -5,6 +5,15 @@ import jwt from "jsonwebtoken";
 import { sendEmail } from "../utils/sendEmail.js";
 import { welcomeTemplate } from "../templates/index.js";
 
+const isProduction = process.env.NODE_ENV === "production";
+
+const cookieOptions = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? "none" : "lax",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
 export const register = async (req, res) => {
   console.log("req came to auth controller");
   try {
@@ -57,11 +66,7 @@ export const register = async (req, res) => {
 
     return res
       .status(201)
-      .cookie("token", token, {
-        httpOnly: true,
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      })
+      .cookie("token", token, cookieOptions)
       .json({
         msg: "Registered successfully",
         user: {
@@ -111,13 +116,7 @@ export const login = async (req, res) => {
 
     return res
       .status(200)
-      .cookie("token", token, {
-        httpOnly: true,
-
-        sameSite: "strict",
-
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      })
+      .cookie("token", token, cookieOptions)
       .json({
         msg: "login successfully",
         user: {
@@ -135,7 +134,11 @@ export const login = async (req, res) => {
 
 export const logout = async (req, res) => {
   try {
-    res.clearCookie("token");
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+    });
 
     return res.status(200).json({
       msg: "Logged out successfully",

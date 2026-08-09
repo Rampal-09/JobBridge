@@ -63,6 +63,7 @@ const ProfileDetail = () => {
   };
 
   useEffect(() => {
+    if (!user) return;
     const fetchProfile = async () => {
       try {
         setLoading(true);
@@ -77,7 +78,7 @@ const ProfileDetail = () => {
     };
 
     fetchProfile();
-  }, []);
+  }, [user]);
 
   if (loading) {
     return (
