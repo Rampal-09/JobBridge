@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { getJobs } from "../api/job";
-import { useAuth } from "../context/Context";
 import Filter from "./Filter";
 import JobList from "./JobList";
 import Layout from "../component/Layout";
@@ -14,7 +13,6 @@ const BrowseJobs = ({
   onEditing,
   onDeleteJob,
 }) => {
-  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [jobs, setJobs] = useState([]);

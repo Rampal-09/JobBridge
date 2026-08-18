@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getJobs } from "../api/job";
-import { useAuth } from "../context/Context";
 import JobCard from "./JobCard";
 import SkeletonCard from "../component/SkeletonCard";
 import Layout from "../component/Layout";
@@ -14,7 +13,6 @@ const Home = ({
   onEditing,
   onDeleteJob,
 }) => {
-  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [featuredJobs, setFeaturedJobs] = useState([]);
@@ -473,7 +471,7 @@ const Home = ({
               desc: "Monitor your application status live from applied to hired.",
               icon: "🎯",
             },
-          ].map((item, index) => (
+          ].map((item) => (
             <div
               key={item.step}
               className="relative bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs flex flex-col justify-between space-y-4 hover:-translate-y-1 transition-transform duration-300"

@@ -3,7 +3,6 @@ import React, { lazy, Suspense, useEffect, useState } from "react";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import {
   getFavorite,
-  getJobs,
   updateJob,
   deleteJob,
   favorite,

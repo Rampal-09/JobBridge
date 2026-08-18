@@ -3,8 +3,6 @@ import { useAuth } from "../context/Context";
 
 const FavoriteJobCard = ({
   f,
-  onDeleteJob,
-  onEditing,
   onFavorite,
   handleApply,
   isFavorite,
